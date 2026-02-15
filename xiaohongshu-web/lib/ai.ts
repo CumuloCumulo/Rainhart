@@ -1,11 +1,16 @@
 // AI optimization with Kimi API
 
-import OpenAI from 'openai';
+import OpenAI from "openai";
 
-const client = new OpenAI({
-  apiKey: process.env.MOONSHOT_API_KEY,
-  baseURL: 'https://api.moonshot.cn/v1',
-});
+function getClient() {
+  if (!process.env.MOONSHOT_API_KEY) {
+    throw new Error("MOONSHOT_API_KEY is not configured");
+  }
+  return new OpenAI({
+    apiKey: process.env.MOONSHOT_API_KEY,
+    baseURL: "https://api.moonshot.cn/v1",
+  });
+}
 
 const SYSTEM_PROMPT = `你是一个专业的 Markdown 格式化专家，专注于将小红书内容转换为结构清晰、易于阅读的 Markdown 格式。
 
@@ -40,15 +45,16 @@ const SYSTEM_PROMPT = `你是一个专业的 Markdown 格式化专家，专注�
  */
 export async function optimizeMarkdown(markdown: string): Promise<string> {
   try {
+    const client = getClient();
     const response = await client.chat.completions.create({
-      model: 'kimi-k2-turbo-preview',
+      model: "kimi-k2-turbo-preview",
       messages: [
         {
-          role: 'system',
+          role: "system",
           content: SYSTEM_PROMPT,
         },
         {
-          role: 'user',
+          role: "user",
           content: markdown,
         },
       ],
@@ -57,8 +63,10 @@ export async function optimizeMarkdown(markdown: string): Promise<string> {
 
     return response.choices[0].message.content || markdown;
   } catch (error) {
-    console.error('AI optimization error:', error);
-    throw new Error(`AI optimization failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    console.error("AI optimization error:", error);
+    throw new Error(
+      `AI optimization failed: ${error instanceof Error ? error.message : "Unknown error"}`,
+    );
   }
 }
 
@@ -67,7 +75,7 @@ export async function optimizeMarkdown(markdown: string): Promise<string> {
  */
 export async function optimizeMarkdownWithInstructions(
   markdown: string,
-  instructions: string
+  instructions: string,
 ): Promise<string> {
   const customPrompt = `${SYSTEM_PROMPT}
 
@@ -75,15 +83,16 @@ export async function optimizeMarkdownWithInstructions(
 ${instructions}`;
 
   try {
+    const client = getClient();
     const response = await client.chat.completions.create({
-      model: 'kimi-k2-turbo-preview',
+      model: "kimi-k2-turbo-preview",
       messages: [
         {
-          role: 'system',
+          role: "system",
           content: customPrompt,
         },
         {
-          role: 'user',
+          role: "user",
           content: markdown,
         },
       ],
@@ -92,7 +101,9 @@ ${instructions}`;
 
     return response.choices[0].message.content || markdown;
   } catch (error) {
-    console.error('AI optimization error:', error);
-    throw new Error(`AI optimization failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    console.error("AI optimization error:", error);
+    throw new Error(
+      `AI optimization failed: ${error instanceof Error ? error.message : "Unknown error"}`,
+    );
   }
 }

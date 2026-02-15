@@ -31,7 +31,9 @@ A web application that extracts Xiaohongshu (小红书) content and converts it 
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/xiaohongshu-web.git
+git clone https://github.com/CumuloCumulo/Rainhart.git
+cd Rainhart/xiaohongshu-web
+```
 cd xiaohongshu-web
 ```
 
