@@ -1,19 +1,22 @@
-'use client';
+"use client";
 
-import { Download } from 'lucide-react';
+import { Download } from "lucide-react";
 
-interface DownloadButtonProps {
+export interface DownloadButtonProps {
   markdown: string;
   filename?: string;
 }
 
-export default function DownloadButton({ markdown, filename }: DownloadButtonProps) {
+export default function DownloadButton({
+  markdown,
+  filename,
+}: DownloadButtonProps) {
   const handleDownload = () => {
-    const blob = new Blob([markdown], { type: 'text/markdown' });
+    const blob = new Blob([markdown], { type: "text/markdown" });
     const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
+    const link = document.createElement("a");
     link.href = url;
-    link.download = filename || 'xiaohongshu-note.md';
+    link.download = filename || "xiaohongshu-note.md";
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);

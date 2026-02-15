@@ -1,0 +1,49 @@
+{
+  "manifest_version": 3,
+  "name": "小红书提取器",
+  "version": "1.1.0",
+  "description": "从小红书笔记页面提取内容并转换为 Markdown 格式",
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "storage"
+  ],
+  "host_permissions": [
+    "https://www.xiaohongshu.com/*",
+    "https://xhslink.com/*"
+  ],
+  "externally_connectable": {
+    "matches": [
+      "http://localhost:*/*",
+      "https://xiaohongshu.reinhart.io/*",
+      "https://xiaohongshu-web.vercel.app/*"
+    ]
+  },
+  "options_page": "options/options.html",
+  "background": {
+    "service_worker": "background/service-worker.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://www.xiaohongshu.com/*"
+      ],
+      "js": ["content/script.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "action": {
+    "default_popup": "popup/popup.html",
+    "default_icon": {
+      "16": "icon16.png",
+      "48": "icon48.png",
+      "128": "icon128.png"
+    },
+    "default_title": "小红书提取器"
+  },
+  "icons": {
+    "16": "icon16.png",
+    "48": "icon48.png",
+    "128": "icon128.png"
+  }
+}

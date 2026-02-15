@@ -9,13 +9,11 @@
     "lint": "eslint"
   },
   "dependencies": {
-    "@sparticuz/chromium": "^143.0.4",
     "@tailwindcss/typography": "^0.5.19",
     "highlight.js": "^11.11.1",
     "lucide-react": "^0.564.0",
     "next": "16.1.6",
     "openai": "^6.22.0",
-    "puppeteer": "^24.37.3",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "react-markdown": "^10.1.0",

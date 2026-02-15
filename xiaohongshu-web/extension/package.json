@@ -1,0 +1,14 @@
+{
+  "name": "xiaohongshu-extractor-extension",
+  "version": "1.0.0",
+  "description": "小红书提取器浏览器插件",
+  "scripts": {
+    "build": "bash create-icons.sh && node build.js",
+    "build:icons": "bash create-icons.sh",
+    "zip": "bash create-icons.sh && node build.js && node zip.js"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "adm-zip": "^0.5.10"
+  }
+}

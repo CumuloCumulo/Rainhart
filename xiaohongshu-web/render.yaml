@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: xiaohongshu-web
+    env: docker
+    plan: free
+    region: oregon
+    branch: main
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: MOONSHOT_API_KEY
+        sync: false
+        generateValue: false

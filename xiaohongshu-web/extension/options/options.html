@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>小红书提取器 - 设置</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB',
+                   'Microsoft YaHei', sans-serif;
+      background: linear-gradient(135deg, #fff1f2 0%, #fff7ed 100%);
+      min-height: 100vh;
+      padding: 20px;
+      color: #27272a;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 30px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid #fecdd3;
+    }
+
+    .header h1 {
+      font-size: 24px;
+      color: #e11d48;
+      margin-bottom: 8px;
+    }
+
+    .header p {
+      font-size: 14px;
+      color: #71717a;
+    }
+
+    .section {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 16px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+
+    .section-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: #18181b;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .section-title svg {
+      width: 20px;
+      height: 20px;
+      color: #e11d48;
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    .form-group:last-child {
+      margin-bottom: 0;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 14px;
+      font-weight: 500;
+      color: #3f3f46;
+      margin-bottom: 6px;
+    }
+
+    .form-hint {
+      font-size: 12px;
+      color: #71717a;
+      margin-top: 4px;
+    }
+
+    .form-input {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #e4e4e7;
+      border-radius: 8px;
+      font-size: 14px;
+      transition: all 0.2s;
+    }
+
+    .form-input:focus {
+      outline: none;
+      border-color: #e11d48;
+      box-shadow: 0 0 0 3px rgba(225, 29, 72, 0.1);
+    }
+
+    textarea.form-input {
+      min-height: 80px;
+      resize: vertical;
+      font-family: inherit;
+    }
+
+    .domain-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .domain-item {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .domain-item input {
+      flex: 1;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #e11d48 0%, #f97316 100%);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      opacity: 0.9;
+      transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+      background: white;
+      border: 1px solid #e4e4e7;
+      color: #27272a;
+    }
+
+    .btn-secondary:hover {
+      background: #f4f4f5;
+    }
+
+    .btn-danger {
+      background: #fef2f2;
+      color: #dc2626;
+      border: 1px solid #fecaca;
+    }
+
+    .btn-danger:hover {
+      background: #fee2e2;
+    }
+
+    .btn-sm {
+      padding: 6px 12px;
+      font-size: 12px;
+    }
+
+    .btn-icon {
+      padding: 8px;
+      width: 36px;
+      height: 36px;
+    }
+
+    .btn-icon svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    .checkbox-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .checkbox-group input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      cursor: pointer;
+      accent-color: #e11d48;
+    }
+
+    .checkbox-group label {
+      font-size: 14px;
+      color: #27272a;
+      cursor: pointer;
+    }
+
+    .status-message {
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 14px;
+      margin-bottom: 16px;
+      display: none;
+    }
+
+    .status-message.success {
+      display: block;
+      background: #ecfdf5;
+      color: #059669;
+      border: 1px solid #a7f3d0;
+    }
+
+    .status-message.error {
+      display: block;
+      background: #fef2f2;
+      color: #dc2626;
+      border: 1px solid #fecaca;
+    }
+
+    .extension-info {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px;
+      background: #f4f4f5;
+      border-radius: 8px;
+      margin-bottom: 16px;
+    }
+
+    .extension-info .version {
+      font-size: 12px;
+      color: #71717a;
+    }
+
+    .actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+      margin-top: 20px;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      body {
+        background: linear-gradient(135deg, #1c0b0e 0%, #1c120a 100%);
+        color: #e4e4e7;
+      }
+
+      .section {
+        background: #27272a;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+      }
+
+      .header {
+        border-bottom-color: #7c2d12;
+      }
+
+      .header h1 {
+        color: #fb7185;
+      }
+
+      .header p {
+        color: #a1a1aa;
+      }
+
+      .section-title {
+        color: #f4f4f5;
+      }
+
+      .form-label {
+        color: #d4d4d8;
+      }
+
+      .form-hint {
+        color: #a1a1aa;
+      }
+
+      .form-input {
+        background: #18181b;
+        border-color: #3f3f46;
+        color: #f4f4f5;
+      }
+
+      .form-input:focus {
+        border-color: #fb7185;
+        box-shadow: 0 0 0 3px rgba(225, 29, 72, 0.2);
+      }
+
+      .btn-secondary {
+        background: #27272a;
+        border-color: #3f3f46;
+        color: #e4e4e7;
+      }
+
+      .btn-secondary:hover {
+        background: #3f3f46;
+      }
+
+      .btn-danger {
+        background: #1c0b0e;
+        color: #fca5a5;
+        border-color: #7c2d12;
+      }
+
+      .btn-danger:hover {
+        background: #2e1216;
+      }
+
+      .checkbox-group label {
+        color: #e4e4e7;
+      }
+
+      .extension-info {
+        background: #18181b;
+      }
+
+      .extension-info .version {
+        color: #71717a;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>小红书提取器</h1>
+      <p>浏览器插件设置</p>
+    </div>
+
+    <div class="extension-info">
+      <div>
+        <strong>版本</strong>
+        <span class="version" id="extensionVersion">1.1.0</span>
+      </div>
+      <div>
+        <strong>ID</strong>
+        <span class="version" id="extensionId">-</span>
+      </div>
+    </div>
+
+    <div id="statusMessage" class="status-message"></div>
+
+    <div class="section">
+      <div class="section-title">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+        </svg>
+        允许的域名
+      </div>
+      <p class="form-hint">这些域名可以通过插件API与浏览器插件通信</p>
+      <div style="margin-top: 12px;" id="domainList" class="domain-list"></div>
+      <button type="button" class="btn btn-secondary btn-sm" style="margin-top: 12px;" id="addDomainBtn">
+        + 添加域名
+      </button>
+    </div>
+
+    <div class="section">
+      <div class="section-title">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+        </svg>
+        提取选项
+      </div>
+      <div class="form-group">
+        <div class="checkbox-group">
+          <input type="checkbox" id="includeImages" checked>
+          <label for="includeImages">包含图片链接</label>
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="checkbox-group">
+          <input type="checkbox" id="includeVideo" checked>
+          <label for="includeVideo">包含视频链接</label>
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="checkbox-group">
+          <input type="checkbox" id="includeTags" checked>
+          <label for="includeTags">提取标签</label>
+        </div>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button type="button" class="btn btn-secondary" id="resetBtn">重置默认</button>
+      <button type="button" class="btn btn-primary" id="saveBtn">保存设置</button>
+    </div>
+  </div>
+
+  <script src="options.js"></script>
+</body>
+</html>

@@ -1,30 +1,36 @@
-'use client';
+"use client";
 
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
-import rehypeHighlight from 'rehype-highlight';
-import rehypeRaw from 'rehype-raw';
-import 'highlight.js/styles/github-dark.css';
-import { FileText, Sparkles, Eye, Code } from 'lucide-react';
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import rehypeHighlight from "rehype-highlight";
+import rehypeRaw from "rehype-raw";
+import "highlight.js/styles/github-dark.css";
+import { FileText, Sparkles, Eye, Code } from "lucide-react";
 
-interface MarkdownPreviewProps {
+export interface MarkdownPreviewProps {
   markdown: string;
   showRaw?: boolean;
   onToggleView?: () => void;
 }
 
-export default function MarkdownPreview({ markdown, showRaw = false, onToggleView }: MarkdownPreviewProps) {
+export default function MarkdownPreview({
+  markdown,
+  showRaw = false,
+  onToggleView,
+}: MarkdownPreviewProps) {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          {markdown.startsWith('---') ? (
+          {markdown.startsWith("---") ? (
             <FileText className="h-5 w-5 text-rose-500" />
           ) : (
             <Sparkles className="h-5 w-5 text-emerald-500" />
           )}
           <h3 className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">
-            {markdown.startsWith('---') ? '原始 Markdown' : 'AI 优化后的 Markdown'}
+            {markdown.startsWith("---")
+              ? "原始 Markdown"
+              : "AI 优化后的 Markdown"}
           </h3>
         </div>
         {onToggleView && (
