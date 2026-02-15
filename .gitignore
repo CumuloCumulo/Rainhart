@@ -1,0 +1,21 @@
+# Node modules
+node_modules/
+
+# Build outputs
+.next/
+
+# Environment variables
+.env
+.env.local
+
+# IDE
+.vscode
+.idea
+
+# Only track xiaohongshu-web directory
+# Other subdirectories are excluded
+xiaohongshu-importer/
+extension/
+
+# Logs
+*.log
