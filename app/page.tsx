@@ -38,6 +38,8 @@ export default function Home() {
   const [hasExtension, setHasExtension] = useState(false);
   const [showExtensionBanner, setShowExtensionBanner] = useState(true);
   const [extensionId, setExtensionId] = useState<string | null>(null);
+  const [showExtensionInput, setShowExtensionInput] = useState(false);
+  const [manualExtensionId, setManualExtensionId] = useState("");
   const extensionCommunicator = getExtensionCommunicator();
 
   const handleExtract = async (url: string) => {
@@ -142,11 +144,27 @@ export default function Home() {
     window.open("https://www.xiaohongshu.com", "_blank");
   };
 
-  // 连接扩展
+  // 连接扩展 - 打开扩展设置页面
   const connectExtension = () => {
-    const returnUrl = encodeURIComponent(window.location.href);
-    const optionsUrl = `chrome-extension://${extensionCommunicator.getExtensionId() || "unknown"}/options/options.html?return_url=${returnUrl}`;
-    window.open(optionsUrl, "_blank");
+    setShowExtensionInput(true);
+  };
+
+  // 手动设置扩展 ID
+  const handleSetExtensionId = () => {
+    if (manualExtensionId.trim()) {
+      extensionCommunicator.setExtensionId(manualExtensionId.trim());
+      setExtensionId(manualExtensionId.trim());
+      // 清空输入并刷新页面
+      setManualExtensionId("");
+      setShowExtensionInput(false);
+      window.location.reload();
+    }
+  };
+
+  // 打开扩展设置页面
+  const openExtensionSettings = () => {
+    // 打开 chrome://extensions/ 页面
+    window.open("chrome://extensions/", "_blank");
   };
 
   // 处理 URL 参数中的扩展 ID
@@ -215,42 +233,107 @@ export default function Home() {
               <div className="flex-1">
                 <div className="flex items-center justify-between gap-4">
                   <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
-                    浏览器插件未安装
+                    {showExtensionInput ? "输入扩展 ID" : "连接浏览器插件"}
                   </h3>
                   <button
-                    onClick={() => setShowExtensionBanner(false)}
+                    onClick={() => {
+                      setShowExtensionBanner(false);
+                      setShowExtensionInput(false);
+                    }}
                     className="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300"
                   >
                     <X className="h-4 w-4" />
                   </button>
                 </div>
-                <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
-                  安装插件后，可直接在小红书页面提取内容，无需手动复制链接
-                </p>
-                <div className="mt-3 flex items-center gap-3">
-                  <button
-                    onClick={connectExtension}
-                    className="flex items-center gap-1.5 rounded-md bg-rose-500 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-rose-600 dark:bg-rose-600 dark:hover:bg-rose-700"
-                  >
-                    <LinkIcon className="h-3.5 w-3.5" />
-                    连接扩展
-                  </button>
-                  <button
-                    onClick={openXiaohongshu}
-                    className="flex items-center gap-1.5 rounded-md bg-zinc-200 px-3 py-1.5 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-300 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
-                  >
-                    <ExternalLink className="h-3.5 w-3.5" />
-                    打开小红书
-                  </button>
-                  <a
-                    href="/extension/"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-sm text-rose-600 underline underline-offset-2 hover:text-rose-700 dark:text-rose-400 dark:hover:text-rose-300"
-                  >
-                    查看插件说明
-                  </a>
-                </div>
+                {!showExtensionInput ? (
+                  <div>
+                    <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
+                      安装插件后，可直接在小红书页面提取内容，无需手动复制链接
+                    </p>
+                    <div className="mt-3 flex flex-wrap items-center gap-3">
+                      <button
+                        onClick={connectExtension}
+                        className="flex items-center gap-1.5 rounded-md bg-rose-500 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-rose-600 dark:bg-rose-600 dark:hover:bg-rose-700"
+                      >
+                        <LinkIcon className="h-3.5 w-3.5" />
+                        输入扩展 ID
+                      </button>
+                      <button
+                        onClick={openXiaohongshu}
+                        className="flex items-center gap-1.5 rounded-md bg-zinc-200 px-3 py-1.5 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-300 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
+                      >
+                        <ExternalLink className="h-3.5 w-3.5" />
+                        打开小红书
+                      </button>
+                      <a
+                        href="/extension/"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm text-rose-600 underline underline-offset-2 hover:text-rose-700 dark:text-rose-400 dark:hover:text-rose-300"
+                      >
+                        查看插件说明
+                      </a>
+                    </div>
+                  </div>
+                ) : (
+                  <div>
+                    <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
+                      请按以下步骤获取并输入扩展 ID：
+                    </p>
+                    <ol className="mt-2 space-y-1.5 text-sm text-zinc-700 dark:text-zinc-300">
+                      <li className="flex gap-2">
+                        <span className="flex-shrink-0 font-medium text-rose-500">
+                          1.
+                        </span>
+                        <span>
+                          打开浏览器扩展页面：
+                          <button
+                            onClick={openExtensionSettings}
+                            className="text-rose-600 underline underline-offset-1 hover:text-rose-700"
+                          >
+                            chrome://extensions/
+                          </button>
+                        </span>
+                      </li>
+                      <li className="flex gap-2">
+                        <span className="flex-shrink-0 font-medium text-rose-500">
+                          2.
+                        </span>
+                        <span>
+                          找到"小红书提取器"，点击"选项"或"详细信息"按钮
+                        </span>
+                      </li>
+                      <li className="flex gap-2">
+                        <span className="flex-shrink-0 font-medium text-rose-500">
+                          3.
+                        </span>
+                        <span>在设置页面点击"复制"按钮复制扩展 ID</span>
+                      </li>
+                      <li className="flex gap-2">
+                        <span className="flex-shrink-0 font-medium text-rose-500">
+                          4.
+                        </span>
+                        <span>将扩展 ID 粘贴到下方输入框</span>
+                      </li>
+                    </ol>
+                    <div className="mt-3 flex gap-2">
+                      <input
+                        type="text"
+                        value={manualExtensionId}
+                        onChange={(e) => setManualExtensionId(e.target.value)}
+                        placeholder="粘贴扩展 ID (如: abcdefghijklmnopqrstuvwxyz1234)"
+                        className="flex-1 rounded-md border border-zinc-300 bg-white px-3 py-1.5 text-sm text-zinc-900 placeholder-zinc-400 focus:border-rose-500 focus:outline-none focus:ring-2 focus:ring-rose-500/20 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100 dark:focus:border-rose-500 dark:placeholder-zinc-500"
+                      />
+                      <button
+                        onClick={handleSetExtensionId}
+                        disabled={!manualExtensionId.trim()}
+                        className="rounded-md bg-rose-500 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-rose-600 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-rose-600 dark:hover:bg-rose-700"
+                      >
+                        连接
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>

@@ -33,6 +33,7 @@ const DEFAULT_CONFIG = {
     "http://localhost:*",
     "https://xiaohongshu.reinhart.io",
     "https://xiaohongshu-web.vercel.app",
+    "https://rainhart.onrender.com",
   ],
   extractOptions: {
     includeImages: true,
@@ -58,6 +59,7 @@ const resetBtn = document.getElementById("resetBtn");
 const statusMessageEl = document.getElementById("statusMessage");
 const extensionVersionEl = document.getElementById("extensionVersion");
 const extensionIdEl = document.getElementById("extensionId");
+const copyIdBtn = document.getElementById("copyIdBtn");
 
 // 显示状态消息
 function showStatusMessage(message, type = "success") {
@@ -221,6 +223,30 @@ function resetConfig() {
 addDomainBtn.addEventListener("click", addDomain);
 saveBtn.addEventListener("click", saveConfig);
 resetBtn.addEventListener("click", resetConfig);
+
+// 复制扩展 ID
+if (copyIdBtn) {
+  copyIdBtn.addEventListener("click", () => {
+    const extensionId = chrome.runtime.id;
+    navigator.clipboard
+      .writeText(extensionId)
+      .then(() => {
+        showStatusMessage("扩展 ID 已复制到剪贴板");
+      })
+      .catch(() => {
+        // 降级方案
+        const textarea = document.createElement("textarea");
+        textarea.value = extensionId;
+        textarea.style.position = "fixed";
+        textarea.style.opacity = "0";
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand("copy");
+        document.body.removeChild(textarea);
+        showStatusMessage("扩展 ID 已复制到剪贴板");
+      });
+  });
+}
 
 // 初始化
 document.addEventListener("DOMContentLoaded", loadConfig);
