@@ -16,5 +16,9 @@ node_modules/
 xiaohongshu-importer/
 extension/
 
+# Ignore root package files (only use xiaohongshu-web/package.json)
+package.json
+package-lock.json
+
 # Logs
 *.log
