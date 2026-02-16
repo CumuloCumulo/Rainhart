@@ -8,6 +8,7 @@ import {
   ExternalLink,
   Puzzle,
   CheckCircle2,
+  Link as LinkIcon,
 } from "lucide-react";
 import LinkInput from "@/components/LinkInput";
 import MarkdownPreview from "@/components/MarkdownPreview";
@@ -36,6 +37,7 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
   const [hasExtension, setHasExtension] = useState(false);
   const [showExtensionBanner, setShowExtensionBanner] = useState(true);
+  const [extensionId, setExtensionId] = useState<string | null>(null);
   const extensionCommunicator = getExtensionCommunicator();
 
   const handleExtract = async (url: string) => {
@@ -140,6 +142,29 @@ export default function Home() {
     window.open("https://www.xiaohongshu.com", "_blank");
   };
 
+  // 连接扩展
+  const connectExtension = () => {
+    const returnUrl = encodeURIComponent(window.location.href);
+    const optionsUrl = `chrome-extension://${extensionCommunicator.getExtensionId() || "unknown"}/options/options.html?return_url=${returnUrl}`;
+    window.open(optionsUrl, "_blank");
+  };
+
+  // 处理 URL 参数中的扩展 ID
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const extIdFromUrl = urlParams.get("extension_id");
+    if (extIdFromUrl) {
+      localStorage.setItem("xhs_extension_id", extIdFromUrl);
+      setExtensionId(extIdFromUrl);
+      extensionCommunicator.setExtensionId(extIdFromUrl);
+      // 清除 URL 参数
+      const newUrl = window.location.pathname;
+      window.history.replaceState({}, "", newUrl);
+      // 刷新页面以使用新的扩展 ID
+      window.location.reload();
+    }
+  }, [extensionCommunicator]);
+
   return (
     <main className="min-h-screen bg-gradient-to-br from-rose-50 via-white to-orange-50 dark:from-zinc-950 dark:via-zinc-900">
       <div className="mx-auto max-w-4xl px-4 py-12 sm:px-6 lg:px-8">
@@ -204,8 +229,15 @@ export default function Home() {
                 </p>
                 <div className="mt-3 flex items-center gap-3">
                   <button
-                    onClick={openXiaohongshu}
+                    onClick={connectExtension}
                     className="flex items-center gap-1.5 rounded-md bg-rose-500 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-rose-600 dark:bg-rose-600 dark:hover:bg-rose-700"
+                  >
+                    <LinkIcon className="h-3.5 w-3.5" />
+                    连接扩展
+                  </button>
+                  <button
+                    onClick={openXiaohongshu}
+                    className="flex items-center gap-1.5 rounded-md bg-zinc-200 px-3 py-1.5 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-300 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
                   >
                     <ExternalLink className="h-3.5 w-3.5" />
                     打开小红书
