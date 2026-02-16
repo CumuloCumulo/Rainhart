@@ -13,7 +13,6 @@ node_modules/
 .idea
 
 # Only track xiaohongshu-web directory
-# Other subdirectories are excluded
 xiaohongshu-importer/
 extension/
 
