@@ -99,14 +99,20 @@ export default function Home() {
   // 检测插件是否安装
   useEffect(() => {
     const checkExtension = async () => {
+      console.log("[Web App] ========== 开始检测扩展 ==========");
+      console.log("[Web App] 当前页面 URL:", window.location.href);
+      console.log(
+        "[Web App] localStorage 中的扩展 ID:",
+        localStorage.getItem("xhs_extension_id"),
+      );
+
       try {
         const installed = await extensionCommunicator.isInstalled();
         setHasExtension(installed);
-        if (installed) {
-          console.log("[Web App] 插件已检测到");
-        }
+        console.log("[Web App] 扩展检测结果:", installed ? "已连接" : "未连接");
       } catch (e) {
-        console.log("[Web App] 插件检测失败", e);
+        console.log("[Web App] 扩展检测失败:", e);
+        setHasExtension(false);
       }
     };
 

@@ -1,6 +1,7 @@
 // Background Service Worker - 处理跨域请求和消息路由
 
 console.log("[小红书提取器] Background Service Worker 已加载");
+console.log("[小红书提取器] 扩展 ID:", chrome.runtime.id);
 
 // 插件ID，用于验证来源
 const EXTENSION_ID = chrome.runtime.id;
@@ -186,17 +187,15 @@ chrome.runtime.onInstalled.addListener((details) => {
 // 监听来自外部网页的消息（Web端与插件联动）
 chrome.runtime.onMessageExternal.addListener(
   async (message, sender, sendResponse) => {
-    console.log(
-      "[小红书提取器 External] 收到外部消息:",
-      message,
-      "发送者:",
-      sender.id,
-    );
+    console.log("[小红书提取器 External] ========== 收到外部消息 ==========");
+    console.log("[小红书提取器 External] 消息类型:", message.type);
+    console.log("[小红书提取器 External] 发送者 ID:", sender.id);
+    console.log("[小红书提取器 External] 发送者 URL:", sender.url);
 
     // 验证来源（在externally_connectable中配置）
     const senderUrl = sender.url;
     if (!senderUrl) {
-      console.log("[小红书提取器 External] 拒绝：没有来源URL");
+      console.log("[小红书提取器 External] ✗ 拒绝：没有来源URL");
       sendResponse({ success: false, error: "未知的来源" });
       return false;
     }
@@ -205,12 +204,23 @@ chrome.runtime.onMessageExternal.addListener(
     const isAllowed = await new Promise((resolve) => {
       chrome.storage.local.get(["allowedDomains"], (result) => {
         const domains = result.allowedDomains || DEFAULT_CONFIG.allowedDomains;
+        console.log("[小红书提取器 External] 允许的域名列表:", domains);
         const allowed = domains.some((domain) => {
           if (domain.includes(":*")) {
             const baseDomain = domain.replace(":*", "");
-            return senderUrl.startsWith(baseDomain);
+            const matches = senderUrl.startsWith(baseDomain);
+            console.log(
+              `[小红书提取器 External] 检查域名 "${baseDomain}*" 匹配 "${senderUrl}":`,
+              matches,
+            );
+            return matches;
           }
-          return senderUrl === domain;
+          const exactMatch = senderUrl === domain;
+          console.log(
+            `[小红书提取器 External] 检查域名完全匹配 "${domain}" === "${senderUrl}":`,
+            exactMatch,
+          );
+          return exactMatch;
         });
         resolve(allowed);
       });
@@ -218,22 +228,26 @@ chrome.runtime.onMessageExternal.addListener(
 
     if (!isAllowed) {
       console.log(
-        "[小红书提取器 External] 拒绝：来源不在允许列表中",
+        "[小红书提取器 External] ✗ 拒绝：来源不在允许列表中",
         senderUrl,
       );
       sendResponse({ success: false, error: "来源不被允许" });
       return false;
     }
 
+    console.log("[小红书提取器 External] ✓ 来源验证通过");
+
     // 处理不同类型的消息
     switch (message.type) {
       case "PING":
+        console.log("[小红书提取器 External] 处理 PING 请求");
         // 健康检查
         sendResponse({
           success: true,
           version: "1.1.0",
           extensionId: EXTENSION_ID,
         });
+        console.log("[小红书提取器 External] ✓ PING 响应已发送");
         break;
 
       case "GET_STATE":

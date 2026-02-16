@@ -31,7 +31,7 @@ export interface ExtensionState {
 }
 
 /**
- * Extension Communicator - Handles communication with the browser extension
+ * Extension Communicator - Handles communication with browser extension
  */
 export class ExtensionCommunicator {
   private extensionId: string | null = null;
@@ -89,23 +89,25 @@ export class ExtensionCommunicator {
   }
 
   /**
-   * Check if the extension is installed and accessible
+   * Check if extension is installed and accessible
    */
   async isInstalled(): Promise<boolean> {
     if (this.isDetected && this.extensionId) {
+      console.log("[ExtensionCommunicator] Already detected, skipping check");
       return true;
     }
 
     // Check for chrome.runtime
     if (typeof window === "undefined" || !(window as any).chrome?.runtime) {
+      console.log("[ExtensionCommunicator] Chrome runtime not available");
       return false;
     }
 
     const chrome = (window as any).chrome;
 
-    // Try to get the extension ID if we don't have one
+    // Try to get extension ID if we don't have one
     if (!this.extensionId) {
-      // Get extension ID from the URL if we're on an extension page
+      // Get extension ID from URL if we're on an extension page
       const urlParams = new URLSearchParams(window.location.search);
       const idFromParams = urlParams.get("extension_id");
       if (idFromParams) {
@@ -116,24 +118,38 @@ export class ExtensionCommunicator {
 
     // Try PING message
     if (this.extensionId) {
+      console.log("[ExtensionCommunicator] Attempting PING to extension:", this.extensionId);
       try {
         const response = await this.sendMessage({
           type: "PING",
         });
+        console.log("[ExtensionCommunicator] PING response:", response);
         if (response?.success) {
           this.isDetected = true;
+          console.log("[ExtensionCommunicator] ✓ Extension detected successfully");
           return true;
+        } else {
+          console.log("[ExtensionCommunicator] ✗ PING returned non-success:", response);
         }
       } catch (e) {
-        console.log("[ExtensionCommunicator] Extension not accessible:", e);
+        console.log("[ExtensionCommunicator] ✗ Extension PING failed:", e);
+        console.log("[ExtensionCommunicator] Possible reasons:");
+        console.log("  1. Extension ID is incorrect");
+        console.log("  2. Extension is not installed or disabled");
+        console.log("  3. Domain not in externally_connectable");
+        console.log("  4. Extension needs to be reloaded");
+        console.log("  Current extension ID:", this.extensionId);
+        console.log("  Current page URL:", window.location.href);
       }
+    } else {
+      console.log("[ExtensionCommunicator] ✗ No extension ID available");
     }
 
     return false;
   }
 
   /**
-   * Extract content from a Xiaohongshu URL using the extension
+   * Extract content from a Xiaohongshu URL using extension
    */
   async extractByUrl(url: string): Promise<ExtractResult> {
     if (!(await this.isInstalled())) {
@@ -167,7 +183,7 @@ export class ExtensionCommunicator {
   }
 
   /**
-   * Get the current state of the extension
+   * Get current state of extension
    */
   async getState(): Promise<ExtensionState> {
     if (!(await this.isInstalled())) {
@@ -179,7 +195,7 @@ export class ExtensionCommunicator {
   }
 
   /**
-   * Get extracted data from the extension
+   * Get extracted data from extension
    */
   async getExtractedData(): Promise<{
     data: ExtractResult;
@@ -230,9 +246,11 @@ export class ExtensionCommunicator {
       throw new Error("Extension ID not set");
     }
 
+    console.log("[ExtensionCommunicator] Sending message to extension:", message.type, "ID:", this.extensionId);
+
     return new Promise((resolve, reject) => {
       const timeout = setTimeout(() => {
-        reject(new Error("Extension message timeout"));
+        reject(new Error("Extension message timeout (30s)"));
       }, 30000);
 
       const chrome = (window as any).chrome;
@@ -240,8 +258,10 @@ export class ExtensionCommunicator {
         clearTimeout(timeout);
 
         if (chrome.runtime.lastError) {
+          console.error("[ExtensionCommunicator] Chrome runtime error:", chrome.runtime.lastError);
           reject(new Error(chrome.runtime.lastError.message));
         } else {
+          console.log("[ExtensionCommunicator] Message response received:", response);
           resolve(response);
         }
       });
@@ -273,12 +293,14 @@ export class ExtensionCommunicator {
   }
 
   /**
-   * Set the extension ID manually (useful for development)
+   * Set extension ID manually (useful for development)
    */
   setExtensionId(id: string) {
     this.extensionId = id;
+    this.isDetected = false; // Reset detection status when ID changes
     if (typeof window !== "undefined") {
       localStorage.setItem(EXTENSION_ID_KEY, id);
+      console.log("[ExtensionCommunicator] Extension ID set manually:", id);
     }
   }
 
