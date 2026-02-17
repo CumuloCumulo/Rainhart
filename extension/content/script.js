@@ -67,11 +67,17 @@ async function getNoteData() {
     const state = window.__INITIAL_STATE__;
     if (state && state.note && state.note.noteDetailMap) {
       noteId = Object.keys(state.note.noteDetailMap)[0];
-      note = state.note.note.noteDetailMap[noteId]?.note;
+      note = state.note.noteDetailMap[noteId]?.note;
       console.log(
         "[小红书提取器] 方法 1 (__INITIAL_STATE__):",
         note ? "成功，noteId=" + noteId : "失败",
       );
+      if (note) {
+        console.log(
+          "[小红书提取器] 方法 1 desc 长度:",
+          (note.desc || "").length,
+        );
+      }
     }
   } catch (e) {
     console.log("[小红书提取器] 方法 1 失败:", e);
@@ -121,11 +127,30 @@ async function getNoteData() {
       // 从标题获取
       const title = document.title.replace(/ - 小红书.*/, "").trim();
 
-      // 尝试从页面元素获取内容
-      const contentElement = document.querySelector(
-        '.desc, [class*="desc"], [class*="content"]',
-      );
-      var content = contentElement ? contentElement.textContent : "";
+      // 尝试从页面元素获取内容 - 使用多种选择器
+      var content = "";
+      const contentSelectors = [
+        "#detail-desc",
+        ".note-text",
+        '[class*="note-text"]',
+        ".content",
+        "#note-page-content",
+        'span[class*="note-text"]',
+        'div[class*="note-content"]',
+        ".desc",
+        '[class*="desc"]',
+      ];
+      for (var si = 0; si < contentSelectors.length; si++) {
+        var el = document.querySelector(contentSelectors[si]);
+        if (
+          el &&
+          el.textContent &&
+          el.textContent.trim().length > content.length
+        ) {
+          content = el.textContent.trim();
+        }
+      }
+      console.log("[小红书提取器] 方法 3 DOM 内容长度:", content.length);
 
       // 尝试获取图片 - 从多个可能的来源
       const images = [];
@@ -233,8 +258,39 @@ async function extractNoteData() {
       }
     }
 
-    // 提取内容
-    const content = note.desc || "";
+    // 提取内容 - 尝试多个字段
+    var content = note.desc || note.content || note.noteContent || "";
+    // 如果 desc 太短，尝试从 DOM 获取更完整的内容
+    if (content.length < 50) {
+      var domContent = "";
+      var domSelectors = [
+        "#detail-desc",
+        ".note-text",
+        '[class*="note-text"]',
+        'span[class*="note-text"]',
+        'div[class*="note-content"]',
+      ];
+      for (var di = 0; di < domSelectors.length; di++) {
+        var domEl = document.querySelector(domSelectors[di]);
+        if (
+          domEl &&
+          domEl.textContent &&
+          domEl.textContent.trim().length > domContent.length
+        ) {
+          domContent = domEl.textContent.trim();
+        }
+      }
+      if (domContent.length > content.length) {
+        console.log(
+          "[小红书提取器] desc 太短(" +
+            content.length +
+            ")，使用 DOM 内容(" +
+            domContent.length +
+            ")",
+        );
+        content = domContent;
+      }
+    }
     const tags = extractTags(content);
 
     const noteData = {
