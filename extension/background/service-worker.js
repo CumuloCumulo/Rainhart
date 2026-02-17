@@ -319,6 +319,8 @@ chrome.runtime.onMessageExternal.addListener(
           break;
         }
 
+        console.log("[小红书提取器 External] 提取 URL:", message.url);
+
         try {
           // 检查是否已有缓存数据
           if (extractedData && noteUrl === message.url) {
@@ -332,6 +334,69 @@ chrome.runtime.onMessageExternal.addListener(
             break;
           }
 
+          // 辅助函数：向标签页发送提取请求，失败时尝试注入 content script
+          async function extractFromTab(tabId, url) {
+            // 先尝试直接发送消息
+            try {
+              const response = await new Promise((resolve, reject) => {
+                chrome.tabs.sendMessage(
+                  tabId,
+                  { type: "EXTRACT_NOTE" },
+                  (resp) => {
+                    if (chrome.runtime.lastError) {
+                      reject(chrome.runtime.lastError);
+                    } else {
+                      resolve(resp);
+                    }
+                  },
+                );
+              });
+              return response;
+            } catch (e) {
+              console.log(
+                "[小红书提取器 External] Content script 未就绪，尝试注入...",
+                e.message,
+              );
+            }
+
+            // Content script 未注入，使用 scripting API 注入
+            try {
+              await chrome.scripting.executeScript({
+                target: { tabId: tabId },
+                files: ["content/script.js"],
+              });
+              console.log("[小红书提取器 External] Content script 注入成功");
+
+              // 等待 content script 初始化和数据提取
+              await new Promise((resolve) => setTimeout(resolve, 5000));
+
+              // 再次尝试发送消息
+              const response = await new Promise((resolve, reject) => {
+                chrome.tabs.sendMessage(
+                  tabId,
+                  { type: "EXTRACT_NOTE" },
+                  (resp) => {
+                    if (chrome.runtime.lastError) {
+                      reject(chrome.runtime.lastError);
+                    } else {
+                      resolve(resp);
+                    }
+                  },
+                );
+              });
+              return response;
+            } catch (injectErr) {
+              console.error(
+                "[小红书提取器 External] Content script 注入失败:",
+                injectErr,
+              );
+              return {
+                success: false,
+                error: "无法注入 content script，请手动打开小红书页面后重试",
+              };
+            }
+          }
+
           // 检查是否有小红书标签页已打开
           chrome.tabs.query({}, async (tabs) => {
             const targetTab = tabs.find(
@@ -340,78 +405,54 @@ chrome.runtime.onMessageExternal.addListener(
                 (tab.url && tab.url.startsWith("https://www.xiaohongshu.com")),
             );
 
-            if (!targetTab || !targetTab.id) {
-              // 没有找到标签页，尝试打开一个
+            let tabId;
+
+            if (targetTab && targetTab.id) {
+              console.log(
+                "[小红书提取器 External] 找到已有标签页:",
+                targetTab.url,
+              );
+              tabId = targetTab.id;
+            } else {
+              // 没有找到标签页，打开一个新的
+              console.log(
+                "[小红书提取器 External] 未找到标签页，正在打开新标签页",
+              );
               try {
-                const newTab = await chrome.tabs.create({ url: message.url });
+                const newTab = await chrome.tabs.create({
+                  url: message.url,
+                });
+                tabId = newTab.id;
+
                 // 等待页面加载完成
                 await new Promise((resolve) => {
-                  const listener = (tabId, changeInfo) => {
-                    if (
-                      tabId === newTab.id &&
-                      changeInfo.status === "complete"
-                    ) {
+                  const listener = (tid, changeInfo) => {
+                    if (tid === tabId && changeInfo.status === "complete") {
                       chrome.tabs.onUpdated.removeListener(listener);
                       resolve();
                     }
                   };
                   chrome.tabs.onUpdated.addListener(listener);
+                  // 超时保护
+                  setTimeout(() => {
+                    chrome.tabs.onUpdated.removeListener(listener);
+                    resolve();
+                  }, 15000);
                 });
 
-                // 发送提取请求到新标签页
-                setTimeout(() => {
-                  if (newTab.id) {
-                    chrome.tabs.sendMessage(
-                      newTab.id,
-                      { type: "EXTRACT_NOTE" },
-                      (response) => {
-                        if (chrome.runtime.lastError) {
-                          console.error(
-                            "[小红书提取器 External] 发送消息失败:",
-                            chrome.runtime.lastError,
-                          );
-                          sendResponse({
-                            success: false,
-                            error: "无法与页面通信，请确保已安装content script",
-                          });
-                        } else {
-                          sendResponse(response || { success: false });
-                        }
-                      },
-                    );
-                  }
-                }, 2000);
+                console.log("[小红书提取器 External] 新标签页加载完成");
               } catch (e) {
                 sendResponse({
                   success: false,
-                  error: "无法打开标签页",
+                  error: "无法打开标签页: " + e.message,
                 });
+                return;
               }
-              return true; // 异步响应
             }
 
-            // 找到标签页，发送提取请求
-            if (targetTab.id) {
-              chrome.tabs.sendMessage(
-                targetTab.id,
-                { type: "EXTRACT_NOTE" },
-                (response) => {
-                  if (chrome.runtime.lastError) {
-                    console.error(
-                      "[小红书提取器 External] 发送消息失败:",
-                      chrome.runtime.lastError,
-                    );
-                    sendResponse({
-                      success: false,
-                      error: "无法与页面通信，请确保已安装content script",
-                    });
-                  } else {
-                    sendResponse(response || { success: false });
-                  }
-                },
-              );
-            }
-            return true; // 异步响应
+            // 从标签页提取数据
+            const result = await extractFromTab(tabId, message.url);
+            sendResponse(result || { success: false, error: "提取返回空结果" });
           });
           return true; // 异步响应
         } catch (e) {

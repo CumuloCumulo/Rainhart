@@ -42,6 +42,22 @@ export default function Home() {
   const [manualExtensionId, setManualExtensionId] = useState("");
   const extensionCommunicator = getExtensionCommunicator();
 
+  // 从粘贴文本中提取小红书 URL
+  const extractXhsUrl = (text: string): string => {
+    // 匹配小红书链接：https://www.xiaohongshu.com/... 或 http://xhslink.com/...
+    const urlMatch = text.match(
+      /https?:\/\/(?:www\.)?(?:xiaohongshu\.com|xhslink\.com)\/\S+/i,
+    );
+    if (urlMatch) {
+      return urlMatch[0];
+    }
+    // 如果文本本身就是 URL，直接返回
+    if (text.startsWith("http://") || text.startsWith("https://")) {
+      return text;
+    }
+    return text;
+  };
+
   const handleExtract = async (url: string) => {
     setIsExtracting(true);
     setError(null);
@@ -50,9 +66,10 @@ export default function Home() {
     setOptimizedMarkdown("");
 
     try {
-      // 使用插件提取
-      console.log("[Web App] 使用插件提取:", url);
-      const data = await extensionCommunicator.extractByUrl(url);
+      // 从粘贴文本中提取纯 URL
+      const cleanUrl = extractXhsUrl(url);
+      console.log("[Web App] 使用插件提取:", cleanUrl);
+      const data = await extensionCommunicator.extractByUrl(cleanUrl);
       setNoteData(data);
       setRawMarkdown(data.markdown || data.content);
     } catch (err) {
