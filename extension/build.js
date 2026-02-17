@@ -55,5 +55,23 @@ if (allIconsExist) {
   console.log('Warning: Icons not found. Run "npm run build:icons" first.');
 }
 
+// Generate zip for web download
+const { execSync } = require("child_process");
+const publicDir = path.join(__dirname, "..", "public");
+const zipPath = path.join(publicDir, "extension.zip");
+
+try {
+  // Remove old zip if exists
+  if (fs.existsSync(zipPath)) {
+    fs.unlinkSync(zipPath);
+  }
+  execSync(`cd "${buildDir}" && zip -r "${zipPath}" . -x ".*"`, {
+    stdio: "pipe",
+  });
+  console.log("\nGenerated: public/extension.zip");
+} catch (e) {
+  console.log("\nWarning: Could not generate zip file:", e.message);
+}
+
 console.log("\nBuild complete!");
 console.log("Extension files are in: " + buildDir);
