@@ -1,181 +1,271 @@
-# 小红书内容提取器 - Xiaohongshu Web Extractor
+# Reinhart - 小红书内容提取器
 
-A web application that extracts Xiaohongshu (小红书) content and converts it to Markdown format. Built with Next.js, with browser extension integration for reliable extraction and Kimi AI for content optimization.
+[English](#english) | [中文](#中文)
 
-## Features
+---
 
-- **Browser Extension Integration**: Seamless communication with Chrome/Edge extension for reliable extraction (no anti-bot detection!)
-- URL Input: Paste any Xiaohongshu link (supports both mobile and desktop formats)
-- Content Extraction: Automatically extract title, content, images, videos, and tags
-- Markdown Preview: Real-time rendered Markdown preview with syntax highlighting
-- AI Optimization: Use Kimi AI to structure and improve the extracted content
-- Download: Export content as Markdown files
-- Dark Mode Support: Beautiful dark mode interface
+## 中文
 
-## Tech Stack
+一个将小红书内容提取并转换为 Markdown 格式的 Web 应用。集成浏览器扩展进行可靠的内容提取，支持 Kimi AI 优化排版。
 
-- **Frontend**: Next.js 16+ (App Router), React, Tailwind CSS
-- **Markdown**: react-markdown, remark-gfm, rehype-highlight
-- **Extension**: Chrome Extension with external messaging API
-- **AI**: OpenAI SDK with Kimi API (Moonshot)
-- **Deployment**: Any Next.js-compatible platform (Vercel, Render, etc.)
+### 功能
 
-## Getting Started
+- **浏览器扩展提取** - 通过 Chrome/Edge 扩展直接提取，绕过反爬虫检测
+- **智能 URL 解析** - 自动从分享文本中识别小红书链接
+- **Markdown 转换** - 自动提取标题、正文、图片、视频、标签
+- **AI 优化** - 使用 Kimi AI 优化 Markdown 结构和排版
+- **一键下载** - 导出为 `.md` 文件
 
-### Prerequisites
+### 支持的链接格式
 
-- Node.js 18+
-- npm or yarn
-- Moonshot API Key (for AI optimization)
+- 手机分享链接：`http://xhslink.com/xxxxx`
+- 桌面链接：`https://www.xiaohongshu.com/discovery/item/xxxxx`
+- 探索链接：`https://www.xiaohongshu.com/explore/xxxxx`
 
-### Installation
+### 快速开始
 
-1. Clone the repository:
+#### 1. 安装
+
 ```bash
 git clone https://github.com/CumuloCumulo/Rainhart.git
-cd Rainhart/xiaohongshu-web
-```
-cd xiaohongshu-web
-```
-
-2. Install dependencies:
-```bash
+cd Rainhart
 npm install
 ```
 
-3. Set up environment variables:
+#### 2. 配置环境变量
+
 ```bash
 cp .env.example .env
 ```
 
-Edit `.env` and add your Moonshot API key:
+编辑 `.env`：
 ```
 MOONSHOT_API_KEY=your_api_key_here
 ```
 
-4. Run the development server:
+> API Key 从 [Moonshot 平台](https://platform.moonshot.cn/) 获取（AI 优化功能需要）
+
+#### 3. 启动
+
 ```bash
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) in your browser.
+打开 [http://localhost:3000](http://localhost:3000)。
 
-## Usage
+### 浏览器扩展
 
-1. Paste a Xiaohongshu URL in the input field
-2. Click "提取内容" to extract the content
-3. View the extracted Markdown in the preview
-4. (Optional) Click "AI 优化" to optimize the content with Kimi AI
-5. Click "下载 Markdown" to download the file
+扩展是内容提取的核心组件，在真实浏览器环境中运行，无反爬检测。
 
-### Browser Extension (Recommended)
+#### 安装扩展
 
-For a better experience with no anti-bot detection, use the browser extension:
+**方式一：从 Web 应用下载**
 
-1. Build the extension:
+访问 `/extension` 页面，下载 zip 并解压。
+
+**方式二：本地构建**
+
 ```bash
 cd extension
-npm run build
+node build.js
 ```
 
-2. Install in Chrome/Edge:
-   - Open `chrome://extensions` (or `edge://extensions`)
-   - Enable "Developer mode"
-   - Click "Load unpacked"
-   - Select the `extension/dist` folder
+#### 加载到浏览器
 
-3. Configure the extension:
-   - Click the extension icon and go to "Options"
-   - Add your web app URL to allowed domains (e.g., `http://localhost:3000`)
+1. 打开 `chrome://extensions`
+2. 开启"开发者模式"
+3. 点击"加载已解压的扩展程序"
+4. 选择 `extension/dist` 文件夹
 
-**Extension Advantages:**
-- No anti-bot detection (runs in real browser)
-- Auto-uses logged-in session
-- Faster extraction speed
-- No server cost
-- Direct web-app integration
+#### 连接 Web 应用
 
-Visit `/extension` in the web app for detailed instructions.
+1. 在 Web 应用首页点击"输入扩展 ID"
+2. 在扩展选项页面复制扩展 ID
+3. 粘贴到输入框并点击"连接"
 
-**Extension Communication:**
-The extension uses `chrome.runtime.onMessageExternal` to communicate with the web app. Make sure your web app domain is configured in the extension's options page.
+### 使用方法
 
-## Supported URL Formats
+1. 粘贴小红书链接（支持直接粘贴分享文本）
+2. 点击"提取内容"
+3. 查看 Markdown 预览
+4. （可选）点击"AI 优化"改善排版
+5. 点击"下载 Markdown"导出文件
 
-- Mobile links: `http://xhslink.com/xxxxx`
+### 部署
+
+#### Render
+
+```yaml
+# render.yaml 已配置好
+Build Command: docker build
+```
+
+在 Render Dashboard 中添加环境变量 `MOONSHOT_API_KEY`。
+
+#### Vercel
+
+1. 导入 GitHub 仓库
+2. 添加环境变量 `MOONSHOT_API_KEY`
+3. 部署
+
+### 项目结构
+
+```
+Reinhart/
+├── app/
+│   ├── page.tsx                # 主页面
+│   ├── extension/page.tsx      # 扩展下载页
+│   └── api/
+│       ├── optimize/route.ts   # AI 优化 API
+│       └── health/route.ts     # 健康检查
+├── components/
+│   ├── LinkInput.tsx           # URL 输入组件
+│   ├── MarkdownPreview.tsx     # Markdown 预览
+│   └── DownloadButton.tsx      # 下载按钮
+├── lib/
+│   ├── extension.ts            # 扩展通信库
+│   ├── markdown.ts             # Markdown 工具
+│   └── ai.ts                   # Kimi AI 集成
+├── extension/                  # 浏览器扩展
+│   ├── manifest.json
+│   ├── background/             # Service Worker
+│   ├── content/                # Content Script
+│   ├── popup/                  # 弹出窗口
+│   ├── options/                # 设置页面
+│   └── dist/                   # 构建输出
+├── types/index.ts
+├── Dockerfile
+├── render.yaml
+└── .env.example
+```
+
+### 环境变量
+
+| 变量 | 说明 | 必需 |
+|------|------|------|
+| `MOONSHOT_API_KEY` | Moonshot AI API Key | AI 优化功能需要 |
+
+---
+
+## English
+
+A web application that extracts Xiaohongshu (Little Red Book) content and converts it to Markdown format. Features browser extension integration for reliable extraction and Kimi AI for content optimization.
+
+### Features
+
+- **Browser Extension Extraction** - Extract via Chrome/Edge extension, bypasses anti-bot detection
+- **Smart URL Parsing** - Auto-detects Xiaohongshu URLs from share text
+- **Markdown Conversion** - Extracts title, content, images, videos, and tags
+- **AI Optimization** - Uses Kimi AI to improve Markdown structure and formatting
+- **One-click Download** - Export as `.md` files
+
+### Supported URL Formats
+
+- Mobile share links: `http://xhslink.com/xxxxx`
 - Desktop links: `https://www.xiaohongshu.com/discovery/item/xxxxx`
 - Explore links: `https://www.xiaohongshu.com/explore/xxxxx`
 
-## Project Structure
+### Quick Start
 
-```
-xiaohongshu-web/
-├── app/
-│   ├── page.tsx              # Main page (with extension integration)
-│   ├── layout.tsx            # Root layout
-│   ├── globals.css           # Global styles
-│   ├── extension/            # Extension info page
-│   └── api/
-│       ├── optimize/
-│       │   └── route.ts      # AI optimization API endpoint
-│       └── health/
-│           └── route.ts      # Health check endpoint
-├── components/
-│   ├── LinkInput.tsx         # URL input component
-│   ├── MarkdownPreview.tsx    # Markdown preview component
-│   └── DownloadButton.tsx    # Download button component
-├── lib/
-│   ├── extension.ts          # Extension communication library
-│   ├── markdown.ts           # Markdown utilities
-│   └── ai.ts                # AI integration
-├── extension/               # Browser extension
-│   ├── manifest.json         # Extension config (with externally_connectable)
-│   ├── content/             # Content scripts
-│   ├── background/          # Background service worker (with external message handling)
-│   ├── popup/               # Popup UI
-│   ├── options/             # Options page (domain configuration)
-│   └── dist/                # Build output
-├── types/
-│   └── index.ts             # TypeScript type definitions
-├── vercel.json              # Vercel deployment config
-└── .env.example             # Environment variables template
+#### 1. Install
+
+```bash
+git clone https://github.com/CumuloCumulo/Rainhart.git
+cd Reinhart
+npm install
 ```
 
-## Deployment
+#### 2. Configure Environment
 
-### Deploy to Vercel (Recommended)
+```bash
+cp .env.example .env
+```
 
-Vercel provides excellent Next.js hosting with zero configuration.
+Edit `.env`:
+```
+MOONSHOT_API_KEY=your_api_key_here
+```
 
-1. Push your code to GitHub
-2. Go to [Vercel](https://vercel.com)
-3. Import your repository
-4. Add environment variable: `MOONSHOT_API_KEY`
-5. Deploy
+> Get your API key from [Moonshot Platform](https://platform.moonshot.cn/) (required for AI optimization)
 
-### Deploy to Render
+#### 3. Run
 
-1. Push your code to GitHub
-2. Go to [Render](https://render.com)
-3. Click "New +" and select "Web Service"
-4. Connect your GitHub repository
-5. Set build and deploy options:
-   - **Build Command**: `npm run build`
-   - **Start Command**: `npm start`
-6. Add environment variable: `MOONSHOT_API_KEY`
-7. Click "Deploy Web Service"
+```bash
+npm run dev
+```
 
-## Environment Variables
+Open [http://localhost:3000](http://localhost:3000).
+
+### Browser Extension
+
+The extension is the core extraction component. It runs in a real browser environment with no anti-bot detection.
+
+#### Install Extension
+
+**Option 1: Download from Web App**
+
+Visit the `/extension` page to download the zip file.
+
+**Option 2: Build Locally**
+
+```bash
+cd extension
+node build.js
+```
+
+#### Load into Browser
+
+1. Open `chrome://extensions`
+2. Enable "Developer mode"
+3. Click "Load unpacked"
+4. Select the `extension/dist` folder
+
+#### Connect to Web App
+
+1. Click "Enter Extension ID" on the web app homepage
+2. Copy the extension ID from the extension options page
+3. Paste it and click "Connect"
+
+### Usage
+
+1. Paste a Xiaohongshu link (supports pasting share text directly)
+2. Click "Extract Content"
+3. View the Markdown preview
+4. (Optional) Click "AI Optimize" to improve formatting
+5. Click "Download Markdown" to export
+
+### Deployment
+
+#### Render
+
+```yaml
+# render.yaml is pre-configured
+Build Command: docker build
+```
+
+Add `MOONSHOT_API_KEY` environment variable in Render Dashboard.
+
+#### Vercel
+
+1. Import GitHub repository
+2. Add `MOONSHOT_API_KEY` environment variable
+3. Deploy
+
+### Tech Stack
+
+- **Frontend**: Next.js (App Router), React, Tailwind CSS
+- **Markdown**: react-markdown, remark-gfm, rehype-highlight
+- **Extension**: Chrome Extension Manifest V3
+- **AI**: OpenAI SDK with Kimi API (Moonshot)
+- **Deployment**: Docker / Vercel / Render
+
+### Environment Variables
 
 | Variable | Description | Required |
 |----------|-------------|----------|
-| `MOONSHOT_API_KEY` | Your Moonshot AI API key | Yes |
+| `MOONSHOT_API_KEY` | Moonshot AI API key | Required for AI optimization |
 
-## Known Limitations
-
-- Xiaohongshu may update their HTML structure, which could break the extension
-- Extension must be installed and configured with the web app domain
-- Video URLs may expire over time
+---
 
 ## License
 
@@ -183,6 +273,5 @@ MIT
 
 ## Acknowledgments
 
-- Based on [xiaohongshu-importer](https://github.com/CumuloCumulo/Rainhart) Obsidian plugin
-- Powered by [Moonshot AI](https://www.moonshot.cn/)
+- Powered by [Moonshot AI (Kimi)](https://www.moonshot.cn/)
 - Built with [Next.js](https://nextjs.org/)
