@@ -62,6 +62,17 @@ export default function MarkdownPreview({
             <ReactMarkdown
               remarkPlugins={[remarkGfm]}
               rehypePlugins={[rehypeHighlight, rehypeRaw]}
+              components={{
+                img: ({ node, ...props }) => (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    {...props}
+                    referrerPolicy="no-referrer"
+                    loading="lazy"
+                    alt={props.alt || ""}
+                  />
+                ),
+              }}
             >
               {markdown}
             </ReactMarkdown>
