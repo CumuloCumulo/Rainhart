@@ -12,6 +12,7 @@ const DEFAULT_CONFIG = {
     "http://localhost:*",
     "https://xiaohongshu.reinhart.io",
     "https://xiaohongshu-web.vercel.app",
+    "https://rainhart.onrender.com",
   ],
   extractOptions: {
     includeImages: true,
@@ -175,12 +176,27 @@ chrome.runtime.onInstalled.addListener((details) => {
       console.log("[小红书提取器] 默认配置已保存");
     });
 
-    // 首次安装，打开欢迎页面（可选）
+    // 首次安装，打开选项页面
     chrome.tabs
       .create({
-        url: chrome.runtime.getURL("popup/welcome.html"),
+        url: chrome.runtime.getURL("options/options.html"),
       })
       .catch(() => {});
+  } else if (details.reason === "update") {
+    // 扩展更新时，合并新的默认域名（不覆盖用户自定义的域名）
+    chrome.storage.local.get(["allowedDomains"], (result) => {
+      const storedDomains = result.allowedDomains || [];
+      const newDomains = DEFAULT_CONFIG.allowedDomains.filter(
+        (d) => !storedDomains.includes(d),
+      );
+      if (newDomains.length > 0) {
+        const mergedDomains = [...storedDomains, ...newDomains];
+        chrome.storage.local.set({ allowedDomains: mergedDomains }, () => {
+          console.log("[小红书提取器] 已合并新的默认域名:", newDomains);
+          console.log("[小红书提取器] 当前域名列表:", mergedDomains);
+        });
+      }
+    });
   }
 });
 
@@ -201,26 +217,33 @@ chrome.runtime.onMessageExternal.addListener(
     }
 
     // 验证来源是否在允许列表中
+    // 去除末尾斜杠以统一比较
+    const normalizedSenderUrl = senderUrl.replace(/\/+$/, "");
     const isAllowed = await new Promise((resolve) => {
       chrome.storage.local.get(["allowedDomains"], (result) => {
         const domains = result.allowedDomains || DEFAULT_CONFIG.allowedDomains;
         console.log("[小红书提取器 External] 允许的域名列表:", domains);
+        console.log(
+          "[小红书提取器 External] 发送者 URL (标准化):",
+          normalizedSenderUrl,
+        );
         const allowed = domains.some((domain) => {
-          if (domain.includes(":*")) {
-            const baseDomain = domain.replace(":*", "");
-            const matches = senderUrl.startsWith(baseDomain);
+          const normalizedDomain = domain.replace(/\/+$/, "");
+          if (normalizedDomain.includes(":*")) {
+            const baseDomain = normalizedDomain.replace(":*", "");
+            const matches = normalizedSenderUrl.startsWith(baseDomain);
             console.log(
-              `[小红书提取器 External] 检查域名 "${baseDomain}*" 匹配 "${senderUrl}":`,
+              `[小红书提取器 External] 检查域名 "${baseDomain}*" 匹配:`,
               matches,
             );
             return matches;
           }
-          const exactMatch = senderUrl === domain;
+          const matches = normalizedSenderUrl === normalizedDomain;
           console.log(
-            `[小红书提取器 External] 检查域名完全匹配 "${domain}" === "${senderUrl}":`,
-            exactMatch,
+            `[小红书提取器 External] 检查域名 "${normalizedDomain}" 匹配:`,
+            matches,
           );
-          return exactMatch;
+          return matches;
         });
         resolve(allowed);
       });

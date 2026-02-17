@@ -57,15 +57,25 @@ export class ExtensionCommunicator {
       }
     }
 
-    // Priority 2: Get extension ID from localStorage
+    // Priority 2: Get extension ID from localStorage with validation
     if (!this.extensionId && typeof window !== "undefined") {
       const storedId = localStorage.getItem(EXTENSION_ID_KEY);
       if (storedId) {
-        this.extensionId = storedId;
-        console.log(
-          "[ExtensionCommunicator] Extension ID from localStorage:",
-          storedId,
-        );
+        // Validate extension ID format (should be 32 chars, lowercase letters and numbers)
+        if (/^[a-z]{32}$/.test(storedId)) {
+          this.extensionId = storedId;
+          console.log(
+            "[ExtensionCommunicator] Extension ID from localStorage:",
+            storedId,
+          );
+        } else {
+          // Invalid format, clear it
+          console.log(
+            "[ExtensionCommunicator] Invalid extension ID in localStorage, clearing:",
+            storedId,
+          );
+          localStorage.removeItem(EXTENSION_ID_KEY);
+        }
       }
     }
 
@@ -118,7 +128,10 @@ export class ExtensionCommunicator {
 
     // Try PING message
     if (this.extensionId) {
-      console.log("[ExtensionCommunicator] Attempting PING to extension:", this.extensionId);
+      console.log(
+        "[ExtensionCommunicator] Attempting PING to extension:",
+        this.extensionId,
+      );
       try {
         const response = await this.sendMessage({
           type: "PING",
@@ -126,10 +139,15 @@ export class ExtensionCommunicator {
         console.log("[ExtensionCommunicator] PING response:", response);
         if (response?.success) {
           this.isDetected = true;
-          console.log("[ExtensionCommunicator] ✓ Extension detected successfully");
+          console.log(
+            "[ExtensionCommunicator] ✓ Extension detected successfully",
+          );
           return true;
         } else {
-          console.log("[ExtensionCommunicator] ✗ PING returned non-success:", response);
+          console.log(
+            "[ExtensionCommunicator] ✗ PING returned non-success:",
+            response,
+          );
         }
       } catch (e) {
         console.log("[ExtensionCommunicator] ✗ Extension PING failed:", e);
@@ -246,7 +264,12 @@ export class ExtensionCommunicator {
       throw new Error("Extension ID not set");
     }
 
-    console.log("[ExtensionCommunicator] Sending message to extension:", message.type, "ID:", this.extensionId);
+    console.log(
+      "[ExtensionCommunicator] Sending message to extension:",
+      message.type,
+      "ID:",
+      this.extensionId,
+    );
 
     return new Promise((resolve, reject) => {
       const timeout = setTimeout(() => {
@@ -258,10 +281,16 @@ export class ExtensionCommunicator {
         clearTimeout(timeout);
 
         if (chrome.runtime.lastError) {
-          console.error("[ExtensionCommunicator] Chrome runtime error:", chrome.runtime.lastError);
+          console.error(
+            "[ExtensionCommunicator] Chrome runtime error:",
+            chrome.runtime.lastError,
+          );
           reject(new Error(chrome.runtime.lastError.message));
         } else {
-          console.log("[ExtensionCommunicator] Message response received:", response);
+          console.log(
+            "[ExtensionCommunicator] Message response received:",
+            response,
+          );
           resolve(response);
         }
       });
