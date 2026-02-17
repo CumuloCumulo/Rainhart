@@ -416,74 +416,68 @@ async function init() {
   });
 }
 
-// 监听来自 popup 的消息
-chrome.runtime.onMessage.addListener(
-  async function (message, sender, sendResponse) {
-    console.log("[小红书提取器] 收到消息:", message);
+// 构建笔记响应数据
+function buildNoteResponse(data) {
+  var markdown = generateMarkdown(data);
+  return {
+    success: true,
+    data: {
+      title: data.title,
+      content: data.content,
+      desc: data.desc,
+      images: data.images,
+      videoUrl: data.videoUrl,
+      tags: data.tags,
+      isVideo: data.isVideo,
+      source: data.source,
+      markdown: markdown,
+    },
+  };
+}
 
-    if (message.type === "EXTRACT_NOTE") {
-      const data = await extractNoteData();
+// 监听来自 popup/background 的消息
+// 注意：不能使用 async function，否则 Chrome 无法正确保持消息通道
+chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
+  console.log("[小红书提取器] 收到消息:", message);
+
+  if (message.type === "EXTRACT_NOTE") {
+    // 使用 .then() 代替 await，确保同步返回 true
+    extractNoteData().then(function (data) {
       if (data) {
-        const markdown = generateMarkdown(data);
-        sendResponse({
-          success: true,
-          data: {
-            title: data.title,
-            content: data.content,
-            desc: data.desc,
-            images: data.images,
-            videoUrl: data.videoUrl,
-            tags: data.tags,
-            isVideo: data.isVideo,
-            source: data.source,
-            markdown: markdown,
-          },
-        });
+        sendResponse(buildNoteResponse(data));
       } else {
         sendResponse({
           success: false,
           error: "无法提取笔记数据，请刷新页面重试",
         });
       }
-      return true; // 保持消息通道打开
-    }
+    });
+    return true; // 同步返回 true，保持消息通道开放
+  }
 
-    if (message.type === "CHECK_PAGE") {
-      sendResponse({
-        isNotePage: isNotePage(),
-      });
-      return true;
-    }
+  if (message.type === "CHECK_PAGE") {
+    sendResponse({
+      isNotePage: isNotePage(),
+    });
+    return true;
+  }
 
-    if (message.type === "SEND_TO_WEB_APP") {
-      const data = await extractNoteData();
+  if (message.type === "SEND_TO_WEB_APP") {
+    extractNoteData().then(function (data) {
       if (data) {
-        const markdown = generateMarkdown(data);
+        var response = buildNoteResponse(data);
         window.postMessage(
-          {
-            type: "XHS_NOTE_EXTRACTED",
-            data: {
-              title: data.title,
-              content: data.content,
-              desc: data.desc,
-              images: data.images,
-              videoUrl: data.videoUrl,
-              tags: data.tags,
-              isVideo: data.isVideo,
-              source: data.source,
-              markdown: markdown,
-            },
-          },
+          { type: "XHS_NOTE_EXTRACTED", data: response.data },
           "*",
         );
         sendResponse({ success: true });
       } else {
         sendResponse({ success: false, error: "无法提取数据" });
       }
-      return true;
-    }
-  },
-);
+    });
+    return true;
+  }
+});
 
 // 页面加载时初始化
 init();

@@ -371,25 +371,55 @@ chrome.runtime.onMessageExternal.addListener(
               await new Promise((resolve) => setTimeout(resolve, 5000));
 
               // 再次尝试发送消息
-              const response = await new Promise((resolve, reject) => {
-                chrome.tabs.sendMessage(
-                  tabId,
-                  { type: "EXTRACT_NOTE" },
-                  (resp) => {
-                    if (chrome.runtime.lastError) {
-                      reject(chrome.runtime.lastError);
-                    } else {
-                      resolve(resp);
-                    }
-                  },
+              try {
+                const response = await new Promise((resolve, reject) => {
+                  chrome.tabs.sendMessage(
+                    tabId,
+                    { type: "EXTRACT_NOTE" },
+                    (resp) => {
+                      if (chrome.runtime.lastError) {
+                        reject(chrome.runtime.lastError);
+                      } else {
+                        resolve(resp);
+                      }
+                    },
+                  );
+                });
+                return response;
+              } catch (msgErr) {
+                console.log(
+                  "[小红书提取器 External] 消息响应失败，检查缓存数据...",
+                  msgErr.message,
                 );
-              });
-              return response;
+                // content script 的 init() 自动运行后可能已缓存数据
+                if (extractedData) {
+                  console.log("[小红书提取器 External] 使用自动提取的缓存数据");
+                  return {
+                    success: true,
+                    data: extractedData,
+                    url: noteUrl,
+                    fromCache: true,
+                  };
+                }
+                return {
+                  success: false,
+                  error: "提取超时，请刷新小红书页面后重试",
+                };
+              }
             } catch (injectErr) {
               console.error(
                 "[小红书提取器 External] Content script 注入失败:",
                 injectErr,
               );
+              // 最后兜底：检查是否有缓存数据
+              if (extractedData) {
+                return {
+                  success: true,
+                  data: extractedData,
+                  url: noteUrl,
+                  fromCache: true,
+                };
+              }
               return {
                 success: false,
                 error: "无法注入 content script，请手动打开小红书页面后重试",
